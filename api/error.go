@@ -47,12 +47,16 @@ func CheckAPIError(resp *http.Response) error {
 		return nil
 	}
 
-	defer resp.Body.Close()
 	errorResponse, err := ProccessErrorResponse(resp.Body)
 	if err != nil {
 		return err
 	}
 	errorResponse.StatusCode = resp.StatusCode
+
+	//defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+	}()
 
 	return errorResponse
 }

@@ -46,8 +46,10 @@ var defaultErrorHandler ErrorHandler = func(resp *http.Response) error {
 	if resp.StatusCode/100 == 4 {
 		var response DiskClientError
 		contents, _ := ioutil.ReadAll(resp.Body)
-		json.Unmarshal(contents, &response)
-
+		err := json.Unmarshal(contents, &response)
+		if err != nil {
+			return err
+		}
 		return response
 	}
 
@@ -108,7 +110,10 @@ func runRequestWithErrorHandler(client *Client, req *http.Request, errorHandler 
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+	}()
 
 	return checkResponseForErrorsWithErrorHandler(resp, errorHandler)
 }

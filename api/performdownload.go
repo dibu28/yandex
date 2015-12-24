@@ -26,10 +26,11 @@ func (c *Client) PerformDownload(url string) (io.ReadCloser, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
+		//defer resp.Body.Close()
+		defer func() {
+			err = resp.Body.Close()
+		}()
 		return nil, fmt.Errorf("download error [%d]: %s", resp.StatusCode, string(body[:]))
-	} else {
-		return resp.Body, err
 	}
-	return nil, err
+	return resp.Body, err
 }

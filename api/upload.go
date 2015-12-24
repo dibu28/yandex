@@ -49,7 +49,11 @@ func (c *Client) UploadRequest(remotePath string, overwrite bool) (*UploadRespon
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+	}()
+
 	ur, err := ParseUploadResponse(resp.Body)
 	if err != nil {
 		return nil, err

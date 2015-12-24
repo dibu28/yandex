@@ -22,7 +22,10 @@ func (c *Client) PerformUpload(url string, data io.Reader) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+	}()
 	if resp.StatusCode != 201 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
