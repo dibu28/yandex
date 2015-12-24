@@ -408,6 +408,11 @@ func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 		o.bytes = uint64(size)
 		o.modTime = modTime
 		o.md5sum = "" // according to unit tests after put the md5 is empty.
+		//and set custom property 'rclone_modified' to file modTime		
+		err := o.fs.yd.SetCustomProperty(remote, "rclone_modified", modTime.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
 	}
 	return err
 }
