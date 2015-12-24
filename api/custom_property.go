@@ -1,9 +1,9 @@
 package src
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
-	"bytes"
 	"net/url"
 )
 
@@ -13,9 +13,9 @@ type CustomPropertyResponse struct {
 }
 
 // SetCustomProperty will set specified data from Yandex Disk
-func (c *Client) SetCustomProperty(remotePath string, property string, value string) (error) {
+func (c *Client) SetCustomProperty(remotePath string, property string, value string) error {
 	rcm := map[string]interface{}{
-  		property: value,
+		property: value,
 	}
 	cpr := CustomPropertyResponse{rcm}
 	data, _ := json.Marshal(cpr)
@@ -28,7 +28,7 @@ func (c *Client) SetCustomProperty(remotePath string, property string, value str
 }
 
 // CustomPropertyRequest will make an CustomProperty request and return a URL to CustomProperty data to.
-func (c *Client) SetCustomPropertyRequest(remotePath string, body io.Reader) (error) {
+func (c *Client) SetCustomPropertyRequest(remotePath string, body io.Reader) error {
 	values := url.Values{}
 	values.Add("path", remotePath)
 	req, err := c.scopedRequest("PATCH", "/v1/disk/resources?"+values.Encode(), body)

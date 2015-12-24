@@ -254,12 +254,27 @@ func (f *Fs) newFsObjectWithInfo(remote string, info *yandex.ResourceInfoRespons
 func (o *Object) setMetaData(info *yandex.ResourceInfoResponse) {
 	o.bytes = info.Size
 	o.md5sum = info.Md5
-	//modTime
-	t, err := time.Parse(time.RFC3339Nano, info.Modified)
-	if err != nil {
-		return
+
+	if info.Custom_properties["rclone_modified"] == nil {
+		//read modTime from Modified property of object
+		t, err := time.Parse(time.RFC3339Nano, info.Modified)
+		if err != nil {
+			return
+		}
+		o.modTime = t
+	} else {
+		// interface{} to string type assertion
+		if modtimestr, ok := info.Custom_properties["rclone_modified"].(string); ok {
+			//read modTime from rclone_modified custom_property of object
+			t, err := time.Parse(time.RFC3339Nano, modtimestr)
+			if err != nil {
+				return
+			}
+			o.modTime = t
+		} else {
+			return //if it is not a string
+		}
 	}
-	o.modTime = t
 }
 
 // readMetaData gets the info if it hasn't already been fetched
@@ -377,7 +392,12 @@ func (o *Object) Remove() error {
 //
 // Commits the datastore
 func (o *Object) SetModTime(modTime time.Time) {
-	//TODO not implemented
+	remote := o.remotePath()
+	//set custom_property 'rclone_modified' of object to modTime
+	err := o.fs.yd.SetCustomProperty(remote, "rclone_modified", modTime.Format(time.RFC3339Nano))
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -408,11 +428,8 @@ func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 		o.bytes = uint64(size)
 		o.modTime = modTime
 		o.md5sum = "" // according to unit tests after put the md5 is empty.
-		//and set custom property 'rclone_modified' to file modTime		
-		err := o.fs.yd.SetCustomProperty(remote, "rclone_modified", modTime.Format(time.RFC3339Nano))
-		if err != nil {
-			return err
-		}
+		//and set modTime of uploaded file
+		o.SetModTime(modTime)
 	}
 	return err
 }
