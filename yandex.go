@@ -128,7 +128,7 @@ func NewFs(name, root string) (fs.Fs, error) {
 
 	f.setRoot(root)
 
-	//FIXME limited fs
+	//limited fs
 	// Check to see if the object exists and is a file
 	//request object meta info
 	var opt2 yandex.ResourceInfoRequestOptions
@@ -295,8 +295,31 @@ func (f *Fs) ListDir() fs.DirChan {
 	go func() {
 		defer close(out)
 
-		//TODO not implemeted
-
+		//request object meta info
+		var opt yandex.ResourceInfoRequestOptions
+		if ResourceInfoResponse, err := f.yd.NewResourceInfoRequest(f.disk_root, opt).Exec(); err != nil {
+			return
+		} else {
+			if ResourceInfoResponse.Resource_type == "dir" {
+				//list all subdirs
+				for _, element := range ResourceInfoResponse.Embedded.Items {
+					if element.Resource_type == "dir" {
+						t, err := time.Parse(time.RFC3339Nano, element.Modified)
+						if err != nil {
+							return
+						}
+						out <- &fs.Dir{
+							Name:  element.Name,
+							When:  t,
+							Bytes: int64(element.Size),
+							Count: -1,
+						}
+					}
+					///
+				}
+			}
+		}
+		///
 	}()
 	return out
 }
