@@ -317,6 +317,7 @@ func (f *Fs) ListDir() fs.DirChan {
 				}
 			}
 		}
+
 	}()
 	return out
 }
@@ -346,12 +347,40 @@ func (f *Fs) Mkdir() error {
 //
 // Returns an error if it isn't empty
 func (f *Fs) Rmdir() error {
+	return f.purgeCheck(true)
+}
+
+// purgeCheck remotes the root directory, if check is set then it
+// refuses to do so if it has anything in
+func (f *Fs) purgeCheck(check bool) error {
+	if check {
+		//to comply with rclone logic we check if the directory is empty before delete.
+		//send request to get list of objects in this directory.
+		var opt yandex.ResourceInfoRequestOptions
+		ResourceInfoResponse, err := f.yd.NewResourceInfoRequest(f.diskRoot, opt).Exec()
+		if err != nil {
+			return fmt.Errorf("Rmdir failed: %s", err)
+		}
+		if len(ResourceInfoResponse.Embedded.Items) != 0 {
+			return fmt.Errorf("Rmdir failed: Directory not empty")
+		}
+	}
+	//delete directory
 	return f.yd.Delete(f.diskRoot, true)
 }
 
 // Precision return the precision of this Fs
 func (f *Fs) Precision() time.Duration {
 	return time.Second
+}
+
+// Purge deletes all the files and the container
+//
+// Optional interface: Only implement this if you have a way of
+// deleting all the files quicker than just running Remove() on the
+// result of List()
+func (f *Fs) Purge() error {
+	return f.purgeCheck(false)
 }
 
 // ------------------------------------------------------------
@@ -439,7 +468,10 @@ func (o *Object) remotePath() string {
 func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 	remote := o.remotePath()
 	//create full path to file before upload.
-	mkDirFullPath(o.fs.yd, remote)
+	err1 := mkDirFullPath(o.fs.yd, remote)
+	if err1 != nil {
+		return err1
+	}
 	//upload file
 	overwrite := true //overwrite existing file
 	err := o.fs.yd.Upload(in, remote, overwrite)
@@ -490,7 +522,10 @@ func mkDirFullPath(client *yandex.Client, path string) error {
 			for _, element := range dirs {
 				if element != "" {
 					mkdirpath += element + "/" //path separator /
-					mkDirExecute(client, mkdirpath)
+					_, _, err2 := mkDirExecute(client, mkdirpath)
+					if err2 != nil {
+						//we continue even if some directories exist.
+					}
 				}
 			}
 		}
@@ -500,8 +535,8 @@ func mkDirFullPath(client *yandex.Client, path string) error {
 
 // Check the interfaces are satisfied
 var (
-	_ fs.Fs = (*Fs)(nil)
-	//_ fs.Purger = (*Fs)(nil)
+	_ fs.Fs     = (*Fs)(nil)
+	_ fs.Purger = (*Fs)(nil)
 	//_ fs.Copier = (*Fs)(nil)
 	_ fs.Object = (*Object)(nil)
 )
