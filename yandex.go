@@ -1,7 +1,6 @@
 // Package yandex provides an interface to the Yandex Disk storage.
 //
 // dibu28 <dibu28@gmail.com> github.com/dibu28
-
 package yandex
 
 import (
@@ -66,7 +65,7 @@ type Fs struct {
 	name       string
 	yd         *yandex.Client // client for rest api
 	root       string         //root path
-	disk_root  string         //root path with "disk:/" container name
+	diskRoot   string         //root path with "disk:/" container name
 	mkdircache map[string]int
 }
 
@@ -100,9 +99,9 @@ func (f *Fs) String() string {
 // read access token from ConfigFile string
 func getAccessToken(name string) (*oauth2.Token, error) {
 	// Read the token from the config file
-	token_config := fs.ConfigFile.MustValue(name, "token")
+	tokenConfig := fs.ConfigFile.MustValue(name, "token")
 	//Get access token from config string
-	decoder := json.NewDecoder(strings.NewReader(token_config))
+	decoder := json.NewDecoder(strings.NewReader(tokenConfig))
 	var result *oauth2.Token
 	err := decoder.Decode(&result)
 	if err != nil {
@@ -155,13 +154,13 @@ func (f *Fs) setRoot(root string) {
 	f.root = strings.Trim(root, "/")
 	//Set disk root path.
 	//Adding "disk:" to root path as all paths on disk start with it
-	var disk_root = ""
+	var diskRoot = ""
 	if f.root == "" {
-		disk_root = "disk:/"
+		diskRoot = "disk:/"
 	} else {
-		disk_root = "disk:/" + f.root + "/"
+		diskRoot = "disk:/" + f.root + "/"
 	}
-	f.disk_root = disk_root
+	f.diskRoot = diskRoot
 }
 
 // list the objects into the function supplied
@@ -171,9 +170,9 @@ func (f *Fs) list(directories bool, fn func(string, yandex.ResourceInfoResponse)
 	//request files list. list is divided into pages. We send request for each page
 	//items per page is limited by limit
 	//TODO may be add config parameter for the items per page limit
-	var limit uint32 = 1000   // max number of object per request
-	var itemsCount uint32 = 0 //number of items per page in response
-	var offset uint32 = 0     //for the next page of request
+	var limit uint32 = 1000 // max number of object per request
+	var itemsCount uint32   //number of items per page in response
+	var offset uint32       //for the next page of request
 	// yandex disk api request options
 	var opt yandex.FlatFileListRequestOptions
 	opt.Limit = &limit
@@ -192,9 +191,9 @@ func (f *Fs) list(directories bool, fn func(string, yandex.ResourceInfoResponse)
 		//list files
 		for _, item := range info.Items {
 			// filter file list and get only files we need
-			if strings.HasPrefix(item.Path, f.disk_root) {
+			if strings.HasPrefix(item.Path, f.diskRoot) {
 				//trim root folder from filename
-				var name = strings.TrimPrefix(item.Path, f.disk_root)
+				var name = strings.TrimPrefix(item.Path, f.diskRoot)
 				fn(name, item)
 			}
 		}
@@ -281,11 +280,11 @@ func (o *Object) setMetaData(info *yandex.ResourceInfoResponse) {
 func (o *Object) readMetaData() (err error) {
 	//request meta info
 	var opt2 yandex.ResourceInfoRequestOptions
-	if ResourceInfoResponse, err := o.fs.yd.NewResourceInfoRequest(o.remotePath(), opt2).Exec(); err != nil {
+	ResourceInfoResponse, err := o.fs.yd.NewResourceInfoRequest(o.remotePath(), opt2).Exec()
+	if err != nil {
 		return err
-	} else {
-		o.setMetaData(ResourceInfoResponse)
 	}
+	o.setMetaData(ResourceInfoResponse)
 	return nil
 }
 
@@ -297,29 +296,27 @@ func (f *Fs) ListDir() fs.DirChan {
 
 		//request object meta info
 		var opt yandex.ResourceInfoRequestOptions
-		if ResourceInfoResponse, err := f.yd.NewResourceInfoRequest(f.disk_root, opt).Exec(); err != nil {
+		ResourceInfoResponse, err := f.yd.NewResourceInfoRequest(f.diskRoot, opt).Exec()
+		if err != nil {
 			return
-		} else {
-			if ResourceInfoResponse.Resource_type == "dir" {
-				//list all subdirs
-				for _, element := range ResourceInfoResponse.Embedded.Items {
-					if element.Resource_type == "dir" {
-						t, err := time.Parse(time.RFC3339Nano, element.Modified)
-						if err != nil {
-							return
-						}
-						out <- &fs.Dir{
-							Name:  element.Name,
-							When:  t,
-							Bytes: int64(element.Size),
-							Count: -1,
-						}
+		}
+		if ResourceInfoResponse.Resource_type == "dir" {
+			//list all subdirs
+			for _, element := range ResourceInfoResponse.Embedded.Items {
+				if element.Resource_type == "dir" {
+					t, err := time.Parse(time.RFC3339Nano, element.Modified)
+					if err != nil {
+						return
 					}
-					///
+					out <- &fs.Dir{
+						Name:  element.Name,
+						When:  t,
+						Bytes: int64(element.Size),
+						Count: -1,
+					}
 				}
 			}
 		}
-		///
 	}()
 	return out
 }
@@ -342,14 +339,14 @@ func (f *Fs) Put(in io.Reader, remote string, modTime time.Time, size int64) (fs
 
 // Mkdir creates the container if it doesn't exist
 func (f *Fs) Mkdir() error {
-	return MkDirFullPath(f.yd, f.disk_root)
+	return mkDirFullPath(f.yd, f.diskRoot)
 }
 
 // Rmdir deletes the container
 //
 // Returns an error if it isn't empty
 func (f *Fs) Rmdir() error {
-	return f.yd.Delete(f.disk_root, true)
+	return f.yd.Delete(f.diskRoot, true)
 }
 
 // Precision return the precision of this Fs
@@ -384,7 +381,7 @@ func (o *Object) Md5sum() (string, error) {
 
 // Size returns the size of an object in bytes
 func (o *Object) Size() int64 {
-	var size int64 = int64(o.bytes) //need to cast from uint64 in yandex disk to int64 in rclone. can cause overflow
+	var size = int64(o.bytes) //need to cast from uint64 in yandex disk to int64 in rclone. can cause overflow
 	return size
 }
 
@@ -431,7 +428,7 @@ func (o *Object) Storable() bool {
 
 // Returns the remote path for the object
 func (o *Object) remotePath() string {
-	return o.fs.disk_root + o.remote
+	return o.fs.diskRoot + o.remote
 }
 
 // Update the already existing object
@@ -442,7 +439,7 @@ func (o *Object) remotePath() string {
 func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 	remote := o.remotePath()
 	//create full path to file before upload.
-	MkDirFullPath(o.fs.yd, remote)
+	mkDirFullPath(o.fs.yd, remote)
 	//upload file
 	overwrite := true //overwrite existing file
 	err := o.fs.yd.Upload(in, remote, overwrite)
@@ -459,41 +456,41 @@ func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 
 // utility funcs-------------------------------------------------------------------
 
-// execute mkdir
-func MkDirExecute(client *yandex.Client, path string) (error, int, string) {
-	if err, statusCode, jsonErrorString := client.Mkdir(path); err != nil {
-		if statusCode == 409 { // dir already exist
-			return err, statusCode, jsonErrorString
-		} else {
-			log.Fatalf("Failed to create folder: %v", err)
-			return err, statusCode, jsonErrorString
-		}
-	} else {
-		if statusCode == 201 { // dir was created
-			return err, statusCode, jsonErrorString
-		}
+// mkDirExecute execute mkdir
+func mkDirExecute(client *yandex.Client, path string) (int, string, error) {
+	err, statusCode, jsonErrorString := client.Mkdir(path)
+	if statusCode == 409 { // dir already exist
+		return statusCode, jsonErrorString, err
 	}
-	return nil, 0, ""
+	if statusCode == 201 { // dir was created
+		return statusCode, jsonErrorString, err
+	}
+	if err != nil {
+		// error creating directory
+		log.Fatalf("Failed to create folder: %v", err)
+		return statusCode, jsonErrorString, err
+	}
+	return 0, "", nil
 }
 
-//Creates Each Directory in the path if needed. Send request once for every directory in the path.
-func MkDirFullPath(client *yandex.Client, path string) error {
+//mkDirFullPath Creates Each Directory in the path if needed. Send request once for every directory in the path.
+func mkDirFullPath(client *yandex.Client, path string) error {
 	//trim filename from path
 	dirString := strings.TrimSuffix(path, filepath.Base(path))
 	//trim "disk:/" from path
 	dirString = strings.TrimPrefix(dirString, "disk:/")
 
 	//1 Try to create directory first
-	if err, _, jsonErrorString := MkDirExecute(client, dirString); err != nil {
+	if _, jsonErrorString, err := mkDirExecute(client, dirString); err != nil {
 		_, er2 := client.ParseAPIError(jsonErrorString)
 		if er2 != "DiskPathPointsToExistentDirectoryError" {
 			//2 if it fails then create all directories in the path from root.
 			dirs := strings.Split(dirString, "/") //path separator /
-			var mkdirpath string = "/"            //path separator /
+			var mkdirpath = "/"                   //path separator /
 			for _, element := range dirs {
 				if element != "" {
 					mkdirpath += element + "/" //path separator /
-					MkDirExecute(client, mkdirpath)
+					mkDirExecute(client, mkdirpath)
 				}
 			}
 		}
