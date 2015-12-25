@@ -5,24 +5,28 @@ import (
 	"strings"
 )
 
+// FlatFileListRequest struct client for FlatFileList Request
 type FlatFileListRequest struct {
 	client      *Client
-	httpRequest *httpRequest
+	HTTPRequest *HTTPRequest
 }
 
+// FlatFileListRequestOptions struct - options for request
 type FlatFileListRequestOptions struct {
-	Media_type   []MediaType
-	Limit        *uint32
-	Offset       *uint32
-	Fields       []string
-	Preview_size *PreviewSize
-	Preview_crop *bool
+	MediaType   []MediaType
+	Limit       *uint32
+	Offset      *uint32
+	Fields      []string
+	PreviewSize *PreviewSize
+	PreviewCrop *bool
 }
 
-func (r *FlatFileListRequest) Request() *httpRequest {
-	return r.httpRequest
+// Request get request
+func (req *FlatFileListRequest) Request() *HTTPRequest {
+	return req.HTTPRequest
 }
 
+// NewFlatFileListRequest create new FlatFileList Request
 func (c *Client) NewFlatFileListRequest(options ...FlatFileListRequestOptions) *FlatFileListRequest {
 	var parameters = make(map[string]interface{})
 	if len(options) > 0 {
@@ -36,26 +40,27 @@ func (c *Client) NewFlatFileListRequest(options ...FlatFileListRequestOptions) *
 		if opt.Fields != nil {
 			parameters["fields"] = strings.Join(opt.Fields, ",")
 		}
-		if opt.Preview_size != nil {
-			parameters["preview_size"] = opt.Preview_size.String()
+		if opt.PreviewSize != nil {
+			parameters["preview_size"] = opt.PreviewSize.String()
 		}
-		if opt.Preview_crop != nil {
-			parameters["preview_crop"] = *opt.Preview_crop
+		if opt.PreviewCrop != nil {
+			parameters["preview_crop"] = *opt.PreviewCrop
 		}
-		if opt.Media_type != nil {
-			var str_media_types = make([]string, len(opt.Media_type))
-			for i, t := range opt.Media_type {
-				str_media_types[i] = t.String()
+		if opt.MediaType != nil {
+			var strMediaTypes = make([]string, len(opt.MediaType))
+			for i, t := range opt.MediaType {
+				strMediaTypes[i] = t.String()
 			}
-			parameters["media_type"] = strings.Join(str_media_types, ",")
+			parameters["media_type"] = strings.Join(strMediaTypes, ",")
 		}
 	}
 	return &FlatFileListRequest{
 		client:      c,
-		httpRequest: createGetRequest(c, "/resources/files", parameters),
+		HTTPRequest: createGetRequest(c, "/resources/files", parameters),
 	}
 }
 
+// Exec run FlatFileList Request
 func (req *FlatFileListRequest) Exec() (*FilesResourceListResponse, error) {
 	data, err := req.Request().run(req.client)
 	if err != nil {

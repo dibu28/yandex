@@ -5,23 +5,27 @@ import (
 	"strings"
 )
 
+// LastUploadedResourceListRequest struct
 type LastUploadedResourceListRequest struct {
 	client      *Client
-	httpRequest *httpRequest
+	HTTPRequest *HTTPRequest
 }
 
+// LastUploadedResourceListRequestOptions struct
 type LastUploadedResourceListRequestOptions struct {
-	Media_type   []MediaType
-	Limit        *uint32
-	Fields       []string
-	Preview_size *PreviewSize
-	Preview_crop *bool
+	MediaType   []MediaType
+	Limit       *uint32
+	Fields      []string
+	PreviewSize *PreviewSize
+	PreviewCrop *bool
 }
 
-func (r *LastUploadedResourceListRequest) Request() *httpRequest {
-	return r.httpRequest
+// Request return request
+func (req *LastUploadedResourceListRequest) Request() *HTTPRequest {
+	return req.HTTPRequest
 }
 
+// NewLastUploadedResourceListRequest create new LastUploadedResourceList Request
 func (c *Client) NewLastUploadedResourceListRequest(options ...LastUploadedResourceListRequestOptions) *LastUploadedResourceListRequest {
 	var parameters = make(map[string]interface{})
 	if len(options) > 0 {
@@ -32,26 +36,27 @@ func (c *Client) NewLastUploadedResourceListRequest(options ...LastUploadedResou
 		if opt.Fields != nil {
 			parameters["fields"] = strings.Join(opt.Fields, ",")
 		}
-		if opt.Preview_size != nil {
-			parameters["preview_size"] = opt.Preview_size.String()
+		if opt.PreviewSize != nil {
+			parameters["preview_size"] = opt.PreviewSize.String()
 		}
-		if opt.Preview_crop != nil {
-			parameters["preview_crop"] = opt.Preview_crop
+		if opt.PreviewCrop != nil {
+			parameters["preview_crop"] = opt.PreviewCrop
 		}
-		if opt.Media_type != nil {
-			var str_media_types = make([]string, len(opt.Media_type))
-			for i, t := range opt.Media_type {
-				str_media_types[i] = t.String()
+		if opt.MediaType != nil {
+			var strMediaTypes = make([]string, len(opt.MediaType))
+			for i, t := range opt.MediaType {
+				strMediaTypes[i] = t.String()
 			}
-			parameters["media_type"] = strings.Join(str_media_types, ",")
+			parameters["media_type"] = strings.Join(strMediaTypes, ",")
 		}
 	}
 	return &LastUploadedResourceListRequest{
 		client:      c,
-		httpRequest: createGetRequest(c, "/resources/last-uploaded", parameters),
+		HTTPRequest: createGetRequest(c, "/resources/last-uploaded", parameters),
 	}
 }
 
+// Exec run LastUploadedResourceList Request
 func (req *LastUploadedResourceListRequest) Exec() (*LastUploadedResourceListResponse, error) {
 	data, err := req.Request().run(req.client)
 	if err != nil {

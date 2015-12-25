@@ -76,7 +76,6 @@ type Object struct {
 	md5sum  string    // The MD5Sum of the object
 	bytes   uint64    // Bytes in the object
 	modTime time.Time // Modified time of the object
-	//item    yandex.ResourceInfoResponse // file metadata from yandex disk object
 }
 
 // ------------------------------------------------------------
@@ -134,7 +133,7 @@ func NewFs(name, root string) (fs.Fs, error) {
 	if ResourceInfoResponse, err := yandexDisk.NewResourceInfoRequest(root, opt2).Exec(); err != nil {
 		//return err
 	} else {
-		if ResourceInfoResponse.Resource_type == "file" {
+		if ResourceInfoResponse.ResourceType == "file" {
 			//limited fs
 			remote := path.Base(root)
 			f.setRoot(path.Dir(root))
@@ -254,7 +253,7 @@ func (o *Object) setMetaData(info *yandex.ResourceInfoResponse) {
 	o.bytes = info.Size
 	o.md5sum = info.Md5
 
-	if info.Custom_properties["rclone_modified"] == nil {
+	if info.CustomProperties["rclone_modified"] == nil {
 		//read modTime from Modified property of object
 		t, err := time.Parse(time.RFC3339Nano, info.Modified)
 		if err != nil {
@@ -263,7 +262,7 @@ func (o *Object) setMetaData(info *yandex.ResourceInfoResponse) {
 		o.modTime = t
 	} else {
 		// interface{} to string type assertion
-		if modtimestr, ok := info.Custom_properties["rclone_modified"].(string); ok {
+		if modtimestr, ok := info.CustomProperties["rclone_modified"].(string); ok {
 			//read modTime from rclone_modified custom_property of object
 			t, err := time.Parse(time.RFC3339Nano, modtimestr)
 			if err != nil {
@@ -300,10 +299,10 @@ func (f *Fs) ListDir() fs.DirChan {
 		if err != nil {
 			return
 		}
-		if ResourceInfoResponse.Resource_type == "dir" {
+		if ResourceInfoResponse.ResourceType == "dir" {
 			//list all subdirs
 			for _, element := range ResourceInfoResponse.Embedded.Items {
-				if element.Resource_type == "dir" {
+				if element.ResourceType == "dir" {
 					t, err := time.Parse(time.RFC3339Nano, element.Modified)
 					if err != nil {
 						return
@@ -490,7 +489,7 @@ func (o *Object) Update(in io.Reader, modTime time.Time, size int64) error {
 
 // mkDirExecute execute mkdir
 func mkDirExecute(client *yandex.Client, path string) (int, string, error) {
-	err, statusCode, jsonErrorString := client.Mkdir(path)
+	statusCode, jsonErrorString, err := client.Mkdir(path)
 	if statusCode == 409 { // dir already exist
 		return statusCode, jsonErrorString, err
 	}
@@ -514,7 +513,7 @@ func mkDirFullPath(client *yandex.Client, path string) error {
 
 	//1 Try to create directory first
 	if _, jsonErrorString, err := mkDirExecute(client, dirString); err != nil {
-		_, er2 := client.ParseAPIError(jsonErrorString)
+		er2, _ := client.ParseAPIError(jsonErrorString)
 		if er2 != "DiskPathPointsToExistentDirectoryError" {
 			//2 if it fails then create all directories in the path from root.
 			dirs := strings.Split(dirString, "/") //path separator /

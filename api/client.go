@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+//Client struct
 type Client struct {
 	token      string
 	basePath   string
-	HttpClient *http.Client
+	HTTPClient *http.Client
 }
 
+//NewClient creates new client
 func NewClient(token string, client ...*http.Client) *Client {
 	return newClientInternal(
 		token,
@@ -29,13 +31,14 @@ func newClientInternal(token string, basePath string, client ...*http.Client) *C
 		basePath: basePath,
 	}
 	if len(client) != 0 {
-		c.HttpClient = client[0]
+		c.HTTPClient = client[0]
 	} else {
-		c.HttpClient = http.DefaultClient
+		c.HTTPClient = http.DefaultClient
 	}
 	return c
 }
 
+//ErrorHandler type
 type ErrorHandler func(*http.Response) error
 
 var defaultErrorHandler ErrorHandler = func(resp *http.Response) error {
@@ -59,21 +62,21 @@ var defaultErrorHandler ErrorHandler = func(resp *http.Response) error {
 	return nil
 }
 
-func (httpRequest *httpRequest) run(client *Client) ([]byte, error) {
+func (HTTPRequest *HTTPRequest) run(client *Client) ([]byte, error) {
 	var err error
 	values := make(url.Values)
-	if httpRequest.Parameters != nil {
-		for k, v := range httpRequest.Parameters {
+	if HTTPRequest.Parameters != nil {
+		for k, v := range HTTPRequest.Parameters {
 			values.Set(k, fmt.Sprintf("%v", v))
 		}
 	}
 
 	var req *http.Request
-	if httpRequest.Method == "POST" {
+	if HTTPRequest.Method == "POST" {
 		// TODO json serialize
 		req, err = http.NewRequest(
 			"POST",
-			client.basePath+httpRequest.Path,
+			client.basePath+HTTPRequest.Path,
 			strings.NewReader(values.Encode()))
 		if err != nil {
 			return nil, err
@@ -82,16 +85,16 @@ func (httpRequest *httpRequest) run(client *Client) ([]byte, error) {
 		// req.Header.Set("Content-Type", "application/json")
 	} else {
 		req, err = http.NewRequest(
-			httpRequest.Method,
-			client.basePath+httpRequest.Path+"?"+values.Encode(),
+			HTTPRequest.Method,
+			client.basePath+HTTPRequest.Path+"?"+values.Encode(),
 			nil)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for headerName := range httpRequest.Headers {
-		var headerValues = httpRequest.Headers[headerName]
+	for headerName := range HTTPRequest.Headers {
+		var headerValues = HTTPRequest.Headers[headerName]
 		for _, headerValue := range headerValues {
 			req.Header.Set(headerName, headerValue)
 		}
@@ -104,7 +107,7 @@ func runRequest(client *Client, req *http.Request) ([]byte, error) {
 }
 
 func runRequestWithErrorHandler(client *Client, req *http.Request, errorHandler ErrorHandler) ([]byte, error) {
-	resp, err := client.HttpClient.Do(req)
+	resp, err := client.HTTPClient.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -121,7 +124,6 @@ func runRequestWithErrorHandler(client *Client, req *http.Request, errorHandler 
 func checkResponseForErrorsWithErrorHandler(resp *http.Response, errorHandler ErrorHandler) ([]byte, error) {
 	if resp.StatusCode/100 > 2 {
 		return nil, errorHandler(resp)
-	} else {
-		return ioutil.ReadAll(resp.Body)
 	}
+	return ioutil.ReadAll(resp.Body)
 }

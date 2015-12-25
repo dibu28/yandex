@@ -41,7 +41,7 @@ func (c *Client) UploadRequest(remotePath string, overwrite bool) (*UploadRespon
 		return nil, err
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

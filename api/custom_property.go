@@ -7,12 +7,12 @@ import (
 	"net/url"
 )
 
-// CustomPropertyResponse struct we send and is returned by the API for CustomProperty request.
+//CustomPropertyResponse struct we send and is returned by the API for CustomProperty request.
 type CustomPropertyResponse struct {
-	Custom_properties map[string]interface{} `json:"custom_properties"`
+	CustomProperties map[string]interface{} `json:"custom_properties"`
 }
 
-// SetCustomProperty will set specified data from Yandex Disk
+//SetCustomProperty will set specified data from Yandex Disk
 func (c *Client) SetCustomProperty(remotePath string, property string, value string) error {
 	rcm := map[string]interface{}{
 		property: value,
@@ -27,7 +27,7 @@ func (c *Client) SetCustomProperty(remotePath string, property string, value str
 	return err
 }
 
-// CustomPropertyRequest will make an CustomProperty request and return a URL to CustomProperty data to.
+//SetCustomPropertyRequest will make an CustomProperty request and return a URL to CustomProperty data to.
 func (c *Client) SetCustomPropertyRequest(remotePath string, body io.Reader) error {
 	values := url.Values{}
 	values.Add("path", remotePath)
@@ -36,7 +36,7 @@ func (c *Client) SetCustomPropertyRequest(remotePath string, body io.Reader) err
 		return err
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

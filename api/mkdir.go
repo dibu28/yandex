@@ -5,7 +5,7 @@ import (
 )
 
 // Mkdir will make specified folder on Yandex Disk
-func (c *Client) Mkdir(remotePath string) (error, int, string) {
+func (c *Client) Mkdir(remotePath string) (int, string, error) {
 
 	values := url.Values{}
 	values.Add("path", remotePath) // only one current folder will be created. Not all the folders in the path.

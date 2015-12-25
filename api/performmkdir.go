@@ -7,10 +7,10 @@ import (
 )
 
 // PerformMkdir does the actual mkdir via PUT request.
-func (c *Client) PerformMkdir(url string) (error, int, string) {
+func (c *Client) PerformMkdir(url string) (int, string, error) {
 	req, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
-		return err, 0, ""
+		return 0, "", err
 	}
 
 	//set access token and headers
@@ -18,16 +18,16 @@ func (c *Client) PerformMkdir(url string) (error, int, string) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err, 0, ""
+		return 0, "", err
 	}
 
 	if resp.StatusCode != 201 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err, 0, ""
+			return 0, "", err
 		}
 		//third parameter is the json error response body
-		return fmt.Errorf("Create Folder error [%d]: %s", resp.StatusCode, string(body[:])), resp.StatusCode, string(body[:])
+		return resp.StatusCode, string(body[:]), fmt.Errorf("Create Folder error [%d]: %s", resp.StatusCode, string(body[:]))
 	}
-	return nil, resp.StatusCode, ""
+	return resp.StatusCode, "", nil
 }

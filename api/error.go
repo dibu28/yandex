@@ -76,12 +76,12 @@ func ProccessErrorString(data string) (*ErrorResponse, error) {
 	return &errorResponse, nil
 }
 
-//Parse API error
-func (c *Client) ParseAPIError(jsonErr string) (error, string) { //ErrorName
+// ParseAPIError Parse json error response from API
+func (c *Client) ParseAPIError(jsonErr string) (string, error) { //ErrorName
 	errorResponse, err := ProccessErrorString(jsonErr)
 	if err != nil {
-		return err, err.Error()
+		return err.Error(), err
 	}
 
-	return nil, errorResponse.ErrorName
+	return errorResponse.ErrorName, nil
 }

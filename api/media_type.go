@@ -1,123 +1,144 @@
 package src
 
+// MediaType struct - media types
 type MediaType struct {
-	media_type string
+	mediaType string
 }
 
+// Audio - media type
 func (m *MediaType) Audio() *MediaType {
 	return &MediaType{
-		media_type: "audio",
+		mediaType: "audio",
 	}
 }
 
+// Backup - media type
 func (m *MediaType) Backup() *MediaType {
 	return &MediaType{
-		media_type: "backup",
+		mediaType: "backup",
 	}
 }
 
+// Book - media type
 func (m *MediaType) Book() *MediaType {
 	return &MediaType{
-		media_type: "book",
+		mediaType: "book",
 	}
 }
 
+// Compressed - media type
 func (m *MediaType) Compressed() *MediaType {
 	return &MediaType{
-		media_type: "compressed",
+		mediaType: "compressed",
 	}
 }
 
+// Data - media type
 func (m *MediaType) Data() *MediaType {
 	return &MediaType{
-		media_type: "data",
+		mediaType: "data",
 	}
 }
 
+// Development - media type
 func (m *MediaType) Development() *MediaType {
 	return &MediaType{
-		media_type: "development",
+		mediaType: "development",
 	}
 }
 
+// Diskimage - media type
 func (m *MediaType) Diskimage() *MediaType {
 	return &MediaType{
-		media_type: "diskimage",
+		mediaType: "diskimage",
 	}
 }
 
+// Document - media type
 func (m *MediaType) Document() *MediaType {
 	return &MediaType{
-		media_type: "document",
+		mediaType: "document",
 	}
 }
 
+// Encoded - media type
 func (m *MediaType) Encoded() *MediaType {
 	return &MediaType{
-		media_type: "encoded",
+		mediaType: "encoded",
 	}
 }
 
+// Executable - media type
 func (m *MediaType) Executable() *MediaType {
 	return &MediaType{
-		media_type: "executable",
+		mediaType: "executable",
 	}
 }
 
+// Flash - media type
 func (m *MediaType) Flash() *MediaType {
 	return &MediaType{
-		media_type: "flash",
+		mediaType: "flash",
 	}
 }
 
+// Font - media type
 func (m *MediaType) Font() *MediaType {
 	return &MediaType{
-		media_type: "font",
+		mediaType: "font",
 	}
 }
 
+// Image - media type
 func (m *MediaType) Image() *MediaType {
 	return &MediaType{
-		media_type: "image",
+		mediaType: "image",
 	}
 }
 
+// Settings - media type
 func (m *MediaType) Settings() *MediaType {
 	return &MediaType{
-		media_type: "settings",
+		mediaType: "settings",
 	}
 }
 
+// Spreadsheet - media type
 func (m *MediaType) Spreadsheet() *MediaType {
 	return &MediaType{
-		media_type: "spreadsheet",
+		mediaType: "spreadsheet",
 	}
 }
 
+// Text - media type
 func (m *MediaType) Text() *MediaType {
 	return &MediaType{
-		media_type: "text",
+		mediaType: "text",
 	}
 }
 
+// Unknown - media type
 func (m *MediaType) Unknown() *MediaType {
 	return &MediaType{
-		media_type: "unknown",
+		mediaType: "unknown",
 	}
 }
 
+// Video - media type
 func (m *MediaType) Video() *MediaType {
 	return &MediaType{
-		media_type: "video",
+		mediaType: "video",
 	}
 }
 
+// Web - media type
 func (m *MediaType) Web() *MediaType {
 	return &MediaType{
-		media_type: "web",
+		mediaType: "web",
 	}
 }
 
+// String - media type
 func (m *MediaType) String() string {
-	return m.media_type
+	return m.mediaType
 }

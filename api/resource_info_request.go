@@ -2,22 +2,26 @@ package src
 
 import "encoding/json"
 
+// ResourceInfoRequest struct
 type ResourceInfoRequest struct {
 	client      *Client
-	httpRequest *httpRequest
+	HTTPRequest *HTTPRequest
 }
 
-func (r *ResourceInfoRequest) Request() *httpRequest {
-	return r.httpRequest
+// Request of ResourceInfoRequest
+func (req *ResourceInfoRequest) Request() *HTTPRequest {
+	return req.HTTPRequest
 }
 
+// NewResourceInfoRequest create new ResourceInfo Request
 func (c *Client) NewResourceInfoRequest(path string, options ...ResourceInfoRequestOptions) *ResourceInfoRequest {
 	return &ResourceInfoRequest{
 		client:      c,
-		httpRequest: createResourceInfoRequest(c, "/resources", path, options...),
+		HTTPRequest: createResourceInfoRequest(c, "/resources", path, options...),
 	}
 }
 
+// Exec run ResourceInfo Request
 func (req *ResourceInfoRequest) Exec() (*ResourceInfoResponse, error) {
 	data, err := req.Request().run(req.client)
 	if err != nil {
@@ -29,8 +33,8 @@ func (req *ResourceInfoRequest) Exec() (*ResourceInfoResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	if info.Custom_properties == nil {
-		info.Custom_properties = make(map[string]interface{})
+	if info.CustomProperties == nil {
+		info.CustomProperties = make(map[string]interface{})
 	}
 	if info.Embedded != nil {
 		if cap(info.Embedded.Items) == 0 {

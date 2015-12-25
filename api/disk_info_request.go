@@ -2,29 +2,33 @@ package src
 
 import "encoding/json"
 
+//DiskInfoRequest type
 type DiskInfoRequest struct {
 	client      *Client
-	httpRequest *httpRequest
+	HTTPRequest *HTTPRequest
 }
 
-func (r *DiskInfoRequest) request() *httpRequest {
-	return r.httpRequest
+func (req *DiskInfoRequest) request() *HTTPRequest {
+	return req.HTTPRequest
 }
 
+//DiskInfoResponse struct is returned by the API for DiskInfo request.
 type DiskInfoResponse struct {
-	Trash_size     uint64            `json:"trash_size"`
-	Total_space    uint64            `json:"total_space"`
-	Used_space     uint64            `json:"used_space"`
-	System_folders map[string]string `json:"system_folders"`
+	TrashSize     uint64            `json:"TrashSize"`
+	TotalSpace    uint64            `json:"TotalSpace"`
+	UsedSpace     uint64            `json:"UsedSpace"`
+	SystemFolders map[string]string `json:"SystemFolders"`
 }
 
+//NewDiskInfoRequest create new DiskInfo Request
 func (c *Client) NewDiskInfoRequest() *DiskInfoRequest {
 	return &DiskInfoRequest{
 		client:      c,
-		httpRequest: createGetRequest(c, "/", nil),
+		HTTPRequest: createGetRequest(c, "/", nil),
 	}
 }
 
+//Exec run DiskInfo Request
 func (req *DiskInfoRequest) Exec() (*DiskInfoResponse, error) {
 	data, err := req.request().run(req.client)
 	if err != nil {
@@ -36,8 +40,8 @@ func (req *DiskInfoRequest) Exec() (*DiskInfoResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	if info.System_folders == nil {
-		info.System_folders = make(map[string]string)
+	if info.SystemFolders == nil {
+		info.SystemFolders = make(map[string]string)
 	}
 
 	return &info, nil

@@ -32,7 +32,7 @@ func (c *Client) DownloadRequest(remotePath string) (*DownloadResponse, error) {
 		return nil, err
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
