@@ -20,13 +20,13 @@ func (c *Client) PerformDownload(url string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer CheckClose(resp.Body, &err)
 
 	if resp.StatusCode != 200 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
+		defer CheckClose(resp.Body, &err)
 		return nil, fmt.Errorf("download error [%d]: %s", resp.StatusCode, string(body[:]))
 	}
 	return resp.Body, err
