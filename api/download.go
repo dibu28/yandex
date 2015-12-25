@@ -39,11 +39,7 @@ func (c *Client) DownloadRequest(remotePath string) (*DownloadResponse, error) {
 	if err := CheckAPIError(resp); err != nil {
 		return nil, err
 	}
-
-	//defer resp.Body.Close()
-	defer func() {
-		err = resp.Body.Close()
-	}()
+	defer CheckClose(resp.Body, &err)
 
 	ur, err := ParseDownloadResponse(resp.Body)
 	if err != nil {

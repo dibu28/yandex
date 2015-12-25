@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -108,15 +109,10 @@ func runRequest(client *Client, req *http.Request) ([]byte, error) {
 
 func runRequestWithErrorHandler(client *Client, req *http.Request, errorHandler ErrorHandler) ([]byte, error) {
 	resp, err := client.HTTPClient.Do(req)
-
 	if err != nil {
 		return nil, err
 	}
-
-	//defer resp.Body.Close()
-	defer func() {
-		err = resp.Body.Close()
-	}()
+	defer CheckClose(resp.Body, &err)
 
 	return checkResponseForErrorsWithErrorHandler(resp, errorHandler)
 }
@@ -126,4 +122,13 @@ func checkResponseForErrorsWithErrorHandler(resp *http.Response, errorHandler Er
 		return nil, errorHandler(resp)
 	}
 	return ioutil.ReadAll(resp.Body)
+}
+
+// CheckClose is a utility function used to check the return from
+// Close in a defer statement.
+func CheckClose(c io.Closer, err *error) {
+	cerr := c.Close()
+	if *err == nil {
+		*err = cerr
+	}
 }

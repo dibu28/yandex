@@ -53,10 +53,7 @@ func CheckAPIError(resp *http.Response) error {
 	}
 	errorResponse.StatusCode = resp.StatusCode
 
-	//defer resp.Body.Close()
-	defer func() {
-		err = resp.Body.Close()
-	}()
+	defer CheckClose(resp.Body, &err)
 
 	return errorResponse
 }
